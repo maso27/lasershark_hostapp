@@ -93,7 +93,7 @@ int main (int argc, char *argv[])
 
 
     opterr_portable = 1;
-    while (-1 != (c =getopt_portable(argc, argv, "a:A:b:B:hmgxp:r:"))) {
+    while (-1 != (c =getopt_portable(argc, argv, "a:A:b:B:hmgxp:r:"))) {    // setting flags
         switch(c) {
         case 'a':
             aflag++;
@@ -137,7 +137,7 @@ int main (int argc, char *argv[])
         }
     }
 
-
+    // error handling
     if (aflag > 1 || Aflag > 1 || bflag > 1 || Bflag > 1 ||
             hflag > 1 ||
             mflag > 1 || gflag > 1 || xflag > 1 || xflag > 1 || rflag > 1 || pflag > 1) {
@@ -146,14 +146,14 @@ int main (int argc, char *argv[])
         goto out_post;
     }
 
-    if (mflag && gflag && xflag) {
-        fprintf(stderr, "Only -m, -g, -r -x flag may be specified.\n");
+    if ((mflag + gflag + xflag) > 1) {
+        fprintf(stderr, "Only -m, -g, or -x flag may be specified.\n");
         print_help(argv[0], stderr);
         goto out_post;
     }
 
     if (!mflag && !gflag && !xflag) {
-        fprintf(stderr, "Must specify -m, -g, -r -c flag.\n");
+        fprintf(stderr, "Must specify -m, -g, or -x flag.\n");
         print_help(argv[0], stderr);
         goto out_post;
     }
@@ -164,7 +164,7 @@ int main (int argc, char *argv[])
         goto out_post;
     }
 
-    if (a_min < MIN_VAL || a_min > MAX_VAL || b_min < MIN_VAL || a_max > MAX_VAL) {
+    if (a_min < MIN_VAL || a_min > MAX_VAL || a_max < MIN_VAL || a_max > MAX_VAL) {
         fprintf(stderr, "A-channel min and max must be between %d and %d\n", MIN_VAL, MAX_VAL);
         print_help(argv[0], stderr);
         goto out_post;
@@ -221,26 +221,36 @@ int main (int argc, char *argv[])
 
     while (count < sample_count) {
         tmp_pos = (curr_y_pos*w + curr_x_pos)*3;
-        if (mflag) {
+        if (mflag) {             // monochrome (on all 3 ports)
             a_val = (((image[tmp_pos] +
                        image[tmp_pos + 1] +
                        image[tmp_pos + 2])/3 >> 4) > MID_VAL) ? MAX_VAL : MIN_VAL;
-            b_val = 0;
-            c_val = 0;
-            a_val = (((a_val - MIN_VAL) * (a_max - a_min)) / (MAX_VAL - MIN_VAL)) + a_min;
-        } else if (gflag) {
+            b_val = (((image[tmp_pos] +
+                       image[tmp_pos + 1] +
+                       image[tmp_pos + 2])/3 >> 4) > MID_VAL) ? MAX_VAL : MIN_VAL;
+            c_val = ((image[tmp_pos] +
+                       image[tmp_pos + 1] +
+                       image[tmp_pos + 2])/3 >> 4) > MID_VAL) ? 1 : 0;
+            a_val = (((a_val - MIN_VAL) * (a_max - a_min)) / (MAX_VAL - MIN_VAL)) + a_min; // re-normalize
+            b_val = (((b_val - MIN_VAL) * (b_max - b_min)) / (MAX_VAL - MIN_VAL)) + b_min; // re-normalize
+        } else if (gflag) {     // greyscale (on A and B, still monochrome on C)
             a_val = (image[tmp_pos] +
                      image[tmp_pos + 1] +
                      image[tmp_pos + 2])/3 >> 4;
-            b_val = 0;
-            c_val = 0;
-            a_val = (((a_val - MIN_VAL) * (a_max - a_min)) / (MAX_VAL - MIN_VAL)) + a_min;
-        } else {
+            b_val = (image[tmp_pos] +
+                     image[tmp_pos + 1] +
+                     image[tmp_pos + 2])/3 >> 4;
+            c_val = ((image[tmp_pos] +
+                       image[tmp_pos + 1] +
+                       image[tmp_pos + 2])/3 >> 4) > MID_VAL) ? 1 : 0; // no greyscale with TTL output
+            a_val = (((a_val - MIN_VAL) * (a_max - a_min)) / (MAX_VAL - MIN_VAL)) + a_min; // re-normalize
+            b_val = (((b_val - MIN_VAL) * (b_max - b_min)) / (MAX_VAL - MIN_VAL)) + b_min; // re-normalize
+        } else {               // RGB
             a_val = image[tmp_pos] >> 4;
             b_val = image[tmp_pos+1] >> 4;
             c_val = ((image[tmp_pos+2] >> 4) > MID_VAL) ? 1 : 0;
-            a_val = (((a_val - MIN_VAL) * (a_max - a_min)) / (MAX_VAL - MIN_VAL)) + a_min;
-            b_val = (((b_val - MIN_VAL) * (b_max - b_min)) / (MAX_VAL - MIN_VAL)) + b_min;
+            a_val = (((a_val - MIN_VAL) * (a_max - a_min)) / (MAX_VAL - MIN_VAL)) + a_min; // re-normalize
+            b_val = (((b_val - MIN_VAL) * (b_max - b_min)) / (MAX_VAL - MIN_VAL)) + b_min; // re-normalize
         }
 
         printf("s=%u,%u,%u,%u,%u,%u\n",
