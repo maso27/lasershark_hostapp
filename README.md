@@ -7,6 +7,8 @@ lasershark_twostep - LaserShark TwoStep Host Application. Demonstrates control o
 
 lasershark_stdin - LaserShark USB ShowCard Host Application. Piping commands to this application as described in lasershark_stdin_input_example.txt will allow a LaserShark board to be controlled via BULK transfers.
 
+lasershark_stdin_gridmaker - Application intended to be piped to the lasershark_stdin application.  This application will generate a grid pattern over the functional area of the output.  Intended to be used for calibration.
+
 lasershark_stdin_circlemaker - Example application intended to be piped to the lasershark_stdin application. Commands output by this application will generate a circle.
 
 Please see the following for details:
