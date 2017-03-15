@@ -29,6 +29,11 @@ lasershark_stdin_circlemaker-windows: lasershark_stdin_circlemaker
 lasershark_stdin_circlemaker: lasershark_stdin_circlemaker.c
 	$(CC) $(CFLAGS) -o lasershark_stdin_circlemaker lasershark_stdin_circlemaker.c -lm
 
+lasershark_stdin_gridmaker-windows: CFLAGS+= -mno-ms-bitfields
+lasershark_stdin_gridmaker-windows: lasershark_stdin_gridmaker
+lasershark_stdin_gridmaker: lasershark_stdin_gridmaker.c
+        $(CC) $(CFLAGS) -o lasershark_stdin_gridmaker lasershark_stdin_gridmaker.c -x none getopt_portable.c
+
 lasershark_stdin_displayimage-windows: CFLAGS+= -mno-ms-bitfields
 lasershark_stdin_displayimage-windows: lasershark_stdin_displayimage
 lasershark_stdin_displayimage: lasershark_stdin_displayimage.c getopt_portable.c getopt_portable.h lodepng/lodepng.cpp lodepng/lodepng.h
