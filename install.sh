@@ -15,4 +15,6 @@ make lasershark_stdin_displayimage
 make lasershark_stdin_circlemaker
 make lasershark_stdin_gridmaker
 
+sudo echo ATTRS{idVendor}=="1fc9", ATTRS{idProduct}=="04d8", MODE="0660", GROUP="plugdev" > /etc/udev/rules.d/40-lasershark.rules
+
 echo "Installation is complete!"
