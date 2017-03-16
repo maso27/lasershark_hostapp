@@ -228,7 +228,7 @@ int main (int argc, char *argv[])
             b_val = (((image[tmp_pos] +
                        image[tmp_pos + 1] +
                        image[tmp_pos + 2])/3 >> 4) > MID_VAL) ? MAX_VAL : MIN_VAL;
-            c_val = ((image[tmp_pos] +
+            c_val = (((image[tmp_pos] +
                        image[tmp_pos + 1] +
                        image[tmp_pos + 2])/3 >> 4) > MID_VAL) ? 1 : 0;
             a_val = (((a_val - MIN_VAL) * (a_max - a_min)) / (MAX_VAL - MIN_VAL)) + a_min; // re-normalize
@@ -240,7 +240,7 @@ int main (int argc, char *argv[])
             b_val = (image[tmp_pos] +
                      image[tmp_pos + 1] +
                      image[tmp_pos + 2])/3 >> 4;
-            c_val = ((image[tmp_pos] +
+            c_val = (((image[tmp_pos] +
                        image[tmp_pos + 1] +
                        image[tmp_pos + 2])/3 >> 4) > MID_VAL) ? 1 : 0; // no greyscale with TTL output
             a_val = (((a_val - MIN_VAL) * (a_max - a_min)) / (MAX_VAL - MIN_VAL)) + a_min; // re-normalize
@@ -285,4 +285,3 @@ int main (int argc, char *argv[])
 out_post:
     return ret;
 }
-
