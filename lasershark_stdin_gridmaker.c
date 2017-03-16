@@ -31,9 +31,9 @@ void print_help(const char* prog_name, FILE* stream)
 {
     fprintf(stream, "%s [OPTIONS] - Displays a grid via LaserShark\n", prog_name);
     fprintf(stream, "\t-h");
-    fprintf(stream, "\tPrint this help text\n");
+    fprintf(stream, "\tPrint this help text.\n");
     fprintf(stream, "\t-n");
-    fprintf(stream, "\tNumber of lines to display on each axis\n");
+    fprintf(stream, "\tNumber of lines to display on each axis. Default: 6\n");
     fprintf(stream, "\t-x");
     fprintf(stream, "\tWidth of grid (max 4096). Default: 4096\n");
     fprintf(stream, "\t-y");
@@ -133,7 +133,7 @@ int main (int argc, char *argv[])
     printf("e=1\n"); // start the stream
 
     while(1) {  // main loop
-        while(x_f <= (1+step)) { // display vertical lines
+        while(x_f <= (1.01)) { // display vertical lines
             printf("s=%u,%u,%u,%u,%u,%u\n", 
                 float_to_lasershark_xy(x_f, x_size), float_to_lasershark_xy(y_f, y_size), 0,0,0,0); // x, y, a, b, c, intl_a
             y_f = -y_f; // span across
@@ -145,7 +145,7 @@ int main (int argc, char *argv[])
         x_f = 1; // because it will already be over there
         y_f = -1; // reset for vertical lines
 
-        while(y_f <= (1+step)) { // display horizontal lines
+        while(y_f <= (1.01)) { // display horizontal lines
             printf("s=%u,%u,%u,%u,%u,%u\n",
                 float_to_lasershark_xy(x_f, x_size), float_to_lasershark_xy(y_f, y_size), 0,0,0,0); // x, y, a, b, c, intl_a
             x_f = -x_f; // span across
