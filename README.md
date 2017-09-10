@@ -37,9 +37,11 @@ It's sloppy, perhaps, but it's effective.
 - Fill Density should be 100%.
 - Infill before perimeters should be checked, so that the part is cured from inside-out.
 - Speed settings are completely ignored.  They can be adjusted within fullprint with _Sweep Speed_.
+
 **Filament Settings**
 - Filament settings are largely ignored.  The laser is on or it's off, so that can't be controlled.
 - If you are using an exhaust fan connected to your RAMPS, this might be a good place to control that.
+
 **Printer Settings**
 - Nozzle Diameter is the effective size of your laser beam.  This will vary depending on your degree of focus etc.  Mine is set to 0.3mm and I have a pretty well focused beam that gets hot if I leave it on too long.
 - Custom G-Code -- place the following into "Before layer change G-code":
