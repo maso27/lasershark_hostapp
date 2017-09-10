@@ -10,7 +10,7 @@ AR=$(CROSS)ar
 PKG_CONFIG=$(CROSS)pkg-config
 CFLAGS=-Wall
 
-all: lasershark_jack lasershark_stdin lasershark_stdin_circlemaker lasershark_stdin_gridmaker lasershark_stdin_edgeline lasershark_stdin_displayimage lasershark_stdin_printimage lasershark_twostep
+all: lasershark_jack lasershark_stdin lasershark_stdin_circlemaker lasershark_stdin_gridmaker lasershark_stdin_edgeline lasershark_stdin_displayimage lasershark_stdin_printimage lasershark_twostep fullprint
 
 all-windows: lasershark_stdin-windows lasershark_stdin_circlemaker-windows lasershark_stdin_gridmaker-windows lasershark_stdin_edgeline-windows lasershark_stdin_displayimage-windows lasershark_stdin_printimage-windows
 
@@ -49,6 +49,11 @@ lasershark_stdin_printimage-windows: lasershark_stdin_printimage
 lasershark_stdin_printimage: lasershark_stdin_printimage.c getopt_portable.c getopt_portable.h lodepng/lodepng.cpp lodepng/lodepng.h
 	$(CC) $(CFLAGS) -o lasershark_stdin_printimage lasershark_stdin_printimage.c -x c lodepng/lodepng.cpp -x none getopt_portable.c -lm
 
+fullprint-windows: CFLAGS+= -mno-ms-bitfields
+fullprint-windows: fullprint
+fullprint: fullprint.c getopt_portable.c getopt_portable.h
+	$(CC) -o fullprint fullprint.c -x none getopt_portable.c -lm
+	
 lasershark_twostep: lasershark_twostep.c lasersharklib/lasershark_uart_bridge_lib.c lasersharklib/lasershark_uart_bridge_lib.h \
                         twosteplib/ls_ub_twostep_lib.c twosteplib/ls_ub_twostep_lib.h \
                         twosteplib/twostep_host_lib.c twosteplib/twostep_host_lib.h \
@@ -58,4 +63,4 @@ lasershark_twostep: lasershark_twostep.c lasersharklib/lasershark_uart_bridge_li
                         twosteplib/twostep_common_lib.c `$(PKG_CONFIG) --libs --cflags libusb-1.0`
 
 clean:
-	rm -f  *.o lasershark_jack lasershark_stdin lasershark_stdin_circlemaker lasershark_stdin_gridmaker lasershark_stdin_edgeline-windows lasershark_stdin_displayimage lasershark_stdin_printimage lasershark_twostep
+	rm -f  *.o lasershark_jack lasershark_stdin lasershark_stdin_circlemaker lasershark_stdin_gridmaker lasershark_stdin_edgeline lasershark_stdin_displayimage lasershark_stdin_printimage lasershark_twostep fullprint
