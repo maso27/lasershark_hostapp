@@ -51,6 +51,12 @@ jack_port_t *in_b;
 
 nframes_t rate;
 
+// Flags to indicate if a color port has anything connected to it. If not, we will use a default value for that color.
+int in_r_connected = 0;
+int in_g_connected = 0;
+int in_b_connected = 0;
+#define COLOR_ON_LEVEL 0.9f   // used when a color port has nothing connected to it
+
 // Number of laserjack data packets the ringbuffer will have space for.
 #define JACK_RB_PACKETS 256
 jack_ringbuffer_t *jack_rb = NULL;
@@ -213,14 +219,18 @@ static int process (nframes_t nframes, void *arg)
     // Read in all samples given to us from the GODLY JACK SERVER
     for (frm = 0; frm < nframes; frm++)
     {
-        // Read the data and convert it to a format suitable to be sent out to the lasershark.
-        temp[0] = convert(*i_r++, -0.0f, 1.0f, lasershark_dac_max_val, lasershark_dac_min_val);
-        temp[1] = convert(*i_g++, -0.0f, 1.0f, lasershark_dac_max_val, lasershark_dac_min_val);
-        if (convert(*i_b++, -0.0f, 1.0f, lasershark_dac_max_val, lasershark_dac_min_val) >= 
-		(lasershark_dac_max_val + lasershark_dac_min_val)/2) {
-		temp[0] |= LASERSHARK_C_BITMASK; // If the laser power is >= half the dac output.. turn this ttl channel on.
-	}
-	temp[0] |= LASERSHARK_INTL_A_BITMASK; // Turn on the interlock pin since this is a valid sample.
+        float r_val = in_r_connected ? *i_r++ : (i_r++, COLOR_ON_LEVEL);
+        float g_val = in_g_connected ? *i_g++ : (i_g++, COLOR_ON_LEVEL);
+        float b_val = in_b_connected ? *i_b++ : (i_b++, COLOR_ON_LEVEL);
+
+        temp[0] = convert(r_val, -0.0f, 1.0f, lasershark_dac_max_val, lasershark_dac_min_val);
+        temp[1] = convert(g_val, -0.0f, 1.0f, lasershark_dac_max_val, lasershark_dac_min_val);
+        if (convert(b_val, -0.0f, 1.0f, lasershark_dac_max_val, lasershark_dac_min_val) >=
+            (lasershark_dac_max_val + lasershark_dac_min_val)/2) {
+            temp[0] |= LASERSHARK_C_BITMASK;
+        }
+
+	    temp[0] |= LASERSHARK_INTL_A_BITMASK; // Turn on the interlock pin since this is a valid sample.
 
         temp[2] = convert(*i_x++, -1.0f, 1.0f, lasershark_dac_max_val, lasershark_dac_min_val);
         temp[3] = convert(*i_y++ * -1.0f, -1.0f, 1.0f, lasershark_dac_max_val, lasershark_dac_min_val);
@@ -264,6 +274,14 @@ static int process (nframes_t nframes, void *arg)
     return 0;
 }
 
+static void port_connect_cb(jack_port_id_t a, jack_port_id_t b, int connect, void *arg)
+{
+    jack_port_t *pa = jack_port_by_id(client, a);
+    jack_port_t *pb = jack_port_by_id(client, b);
+    if (pa == in_r || pb == in_r) in_r_connected = jack_port_connected(in_r) ? 1 : 0;
+    if (pa == in_g || pb == in_g) in_g_connected = jack_port_connected(in_g) ? 1 : 0;
+    if (pa == in_b || pb == in_b) in_b_connected = jack_port_connected(in_b) ? 1 : 0;
+}
 
 static int bufsize (nframes_t nframes, void *arg)
 {
@@ -337,7 +355,7 @@ int main (int argc, char *argv[])
     }
 
 
-    libusb_set_debug(NULL, 3);
+    libusb_set_option(NULL, LIBUSB_OPTION_LOG_LEVEL, LIBUSB_LOG_LEVEL_INFO);
 
     rc = libusb_claim_interface(devh_ctl, 0);
     if (rc < 0)
@@ -367,7 +385,7 @@ int main (int argc, char *argv[])
         fprintf(stderr, "Error obtaining device descriptor: %d\n", /*libusb_error_name(rc)*/rc);
     }
     
-    memset(lasershark_serialnum, lasershark_serialnum_len, 0);
+    memset(lasershark_serialnum, 0,lasershark_serialnum_len);
     rc = libusb_get_string_descriptor_ascii(devh_ctl, desc.iSerialNumber, lasershark_serialnum, lasershark_serialnum_len);
     if (rc < 0) {
         fprintf(stderr, "Error obtaining iSerialNumber: %d\n", /*libusb_error_name(rc)*/rc);
@@ -489,6 +507,8 @@ int main (int argc, char *argv[])
     in_r = jack_port_register (client, "in_g", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
     in_g = jack_port_register (client, "in_r", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
     in_b = jack_port_register (client, "in_b", JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+
+    jack_set_port_connect_callback(client, port_connect_cb, 0);
 
     if (lasershark_ilda_rate == 0)
     {
