@@ -35,6 +35,9 @@ along with Lasershark. If not, see <http://www.gnu.org/licenses/>.
 #define LASERSHARK_VIN 0x1fc9
 #define LASERSHARK_PID 0x04d8
 
+// #define X_INVERT
+// #define Y_INVERT
+
 int do_exit = 0;
 pid_t pid;
 
@@ -232,8 +235,17 @@ static int process (nframes_t nframes, void *arg)
 
 	    temp[0] |= LASERSHARK_INTL_A_BITMASK; // Turn on the interlock pin since this is a valid sample.
 
+    #ifdef X_INVERT
         temp[2] = convert(*i_x++, -1.0f, 1.0f, lasershark_dac_max_val, lasershark_dac_min_val);
+    #else
+        temp[2] = convert(*i_x++ * -1.0f, -1.0f, 1.0f, lasershark_dac_max_val, lasershark_dac_min_val);
+    #endif
+
+    #ifdef Y_INVERT
+        temp[3] = convert(*i_y++, -1.0f, 1.0f, lasershark_dac_max_val, lasershark_dac_min_val);
+    #else
         temp[3] = convert(*i_y++ * -1.0f, -1.0f, 1.0f, lasershark_dac_max_val, lasershark_dac_min_val);
+    #endif
 
         // Jam the samples in the ringbuffer.
         avail = jack_ringbuffer_write_space(jack_rb);
